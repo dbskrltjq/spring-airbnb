@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.airbnb.mapper.ReservationMapper">
+
+	<!-- void insertCard (Card card); -->
+	<insert id="insertCard" parameterType="Card">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			select cards_seq.nextval
+			from dual
+		</selectKey>
+		insert into airbnb_cards
+		(card_no, card_id, card_expiry_date, card_cvv, card_zip_code, card_region, user_no)
+		values
+		(#{no}, #{id}, #{expiryDate}, #{cvv}, #{zipCode}, #{region}, #{user.no})
+	</insert>
+	
+	<!-- void insertReservation (Reservation reservation); -->
+	<insert id="insertReservation" parameterType="Reservation">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			select reservations_seq.nextval
+			from dual
+		</selectKey>
+		insert into airbnb_reservations
+		(reservation_no, user_no, acc_no, check_in_date, check_out_date, adult_number, children_number,
+		 infant_number, pet_number, message_to_host, acc_service_fee, acc_price, entire_payment, left_payment, total_price, total_guest)
+		values
+		(#{no}, #{user.no}, #{accNo}, #{checkInDate}, #{checkOutDate},
+		 #{adultNum}, #{childrenNum}, #{infantNum}, #{petNum}, #{messageToHost},
+		 #{serviceFee}, #{price}, #{entirePay}, #{leftPay}, #{totalPrice}, #{totalGuest})
+	</insert>
+	
+	<resultMap type="Card" id="CardResultMap">
+		<id column="card_no" property="no"/>
+		<result column="card_id" property="id"/>
+		<result column="card_expiry_date" property="expiryDate"/>
+		<result column="card_cvv" property="cvv"/>
+		<result column="card_zip_code" property="zipCode"/>
+		<result column="card_region" property="region"/>
+		<result column="card_balance" property="balance"/>
+		<result column="card_availability" property="availability"/>
+		<association property="user" column="user_no" select="kr.co.airbnb.mapper.UserMapper.getUserByNo"></association>
+	</resultMap>
+	
+	<resultMap type="Reservation" id="ReservationResultMap">
+		<id column="reservation_no" property="no"/>
+		<result column="reservation_status" property="status"/>
+		<result column="check_in_date" property="checkInDate"/>
+		<result column="check_out_date" property="checkOutDate"/>
+		<result column="adult_number" property="adultNum"/>
+		<result column="children_number" property="childrenNum"/>
+		<result column="infant_number" property="infantNum"/>
+		<result column="pet_number" property="petNum"/>
+		<result column="message_to_host" property="messageToHost"/>
+		<result column="reservation_created_date" property="createdDate"/>
+		<result column="reservation_updated_date" property="updatedDate"/>
+		<result column="acc_service_fee" property="serviceFee"/>
+		<result column="acc_total_price" property="price"/>
+		<result column="entire_payment" property="entirePay"/>
+		<result column="left_payment" property="leftPay"/>
+		<association property="accommodation" column="acc_no" select="kr.co.airbnb.mapper.AccommodationMapper.getAcc"></association>
+		<association property="user" column="user_no" select="kr.co.airbnb.mapper.UserMapper.getUserByNo"></association>
+	</resultMap>
+	
+	
+	<!-- Card getCardByNo(int no); -->
+	<select id="getCardByUserNo" parameterType="int" resultMap="CardResultMap">
+		select *
+		from airbnb_cards
+		where user_no = #{value}
+		and card_id is not null
+	</select>
+	
+	<!-- Reservation getReservationByuserNo(int no); -->
+	<select id="getReservationByUserNo" parameterType="int" resultMap="ReservationResultMap">
+		select *
+		from airbnb_reservations
+		where user_no = #{value}
+		order by check_in_date desc
+	</select>
+	
+	<!-- Reservation getReservationByReservaionNo(int reservationNo); -->
+	<select id="getReservationByReservaionNo" parameterType="int" resultMap="ReservationResultMap">
+		select *
+		from airbnb_reservations
+		where reservation_no = #{value}
+	</select>
+	
+</mapper>

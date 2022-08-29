@@ -1,0 +1,509 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.airbnb.mapper.AccommodationMapper">
+	<resultMap type="Accommodation" id="AccResultMap">
+		<id column="ACC_NO" property="accNo"/>
+		<result column="ACC_REVIEW_COUNT" property="reviewCount"/>
+		<result column="ACC_REVIEW_SCORE" property="reviewScore"/>
+		<result column="ACC_NAME" property="name"/>
+		<result column="ACC_DESCRIPTION" property="description"/>
+		<result column="ACC_address" property="address"/>
+		<result column="ACC_LATITUDE" property="latitude"/>
+		<result column="ACC_LONGITUDE" property="longitude"/>
+		<result column="ACC_PRICE" property="price"/>
+		<result column="ACC_GUEST" property="guest"/>
+		<result column="ACC_PET" property="pet"/>
+		<result column="ACC_CHECK_IN" property="checkIn"/>
+		<result column="ACC_CHECK_OUT" property="checkOut"/>
+		<result column="ACC_CHECK_IN_TYPE" property="checkInType"/>
+		<result column="ACC_STATUS" property="status"/>
+		<result column="ACC_CREATED_DATE" property="createdDate"/>
+		<result column="ACC_UPDATED_DATE" property="updatedDate"/>
+		<result column="ACC_VIEW_COUNT" property="viewCount"/>
+		<result column="ACC_MIN_DAY" property="minDay"/>
+		<result column="ACC_MAX_DAY" property="maxDay"/>
+		<result column="ACC_RENT" property="rent"/>
+		<result column="ACC_TRAFFIC_DESCRIPTION" property="trafficDescription"/>
+		<result column="ACC_REFOUND_DESCRIPTION" property="refoundDescription"/>
+		<result column="ACC_CLEANING_PRICE" property="cleaningPrice"/>
+		<result column="IMAGE_COVER" property="imageCover"/>
+		<result column="AVG_CLEANLINESS" property="cleanScore"/>
+		<result column="AVG_ACCURACY" property="accuracyScore"/>
+		<result column="AVG_COMMUNICATION" property="communicationScore"/>
+		<result column="AVG_LOCATION" property="locationScore"/>
+		<result column="AVG_CHECKIN" property="checkinScore"/>
+		<result column="AVG_VALUE" property="valueScore"/>
+		<result column="AVG_CONVENIENCE" property="convenienceScore"/>
+		<result column="AVG_TOTAL" property="totalScore"/>
+		<result column="SAVED_WISHLIST" property="savedWishlist" />
+		<association property="user" column="USER_NO" select="kr.co.airbnb.mapper.UserMapper.getUserByNo"/>
+	</resultMap>
+	
+	<!-- List<Integer> getPriceCount(); -->
+	<select id="getPriceCount" resultType="int">
+		select count(*) as priceCount
+		from (select trunc(acc_price/32000) acc_price
+		        from airbnb_accommodations)
+		group by acc_price
+		order by acc_price
+	</select>
+	
+	<!-- AccPrice getPrice(); -->
+	<select id="getPrice" resultType="Price">
+		select 	avg(acc_price) as avg, 
+				max(acc_price) as max, 
+				min(acc_price) as min
+		from airbnb_accommodations
+	</select>
+	
+	<!-- List<AccConvenience> getAccConveniencesByAccNo(int accNo); -->
+	<select id="getAccConveniencesByAccNo" parameterType="int" resultType="AccConvenience">
+		select A.ACC_NO as accNo, 
+			   A.CONVENIENCE_NO as "convenience.no",
+			   B.CONVENIENCE_NAME as "convenience.name",	       
+			   B.CONVENIENCE_ICON_NAME as "convenience.iconName",		       
+			   B.CONVENIENCE_TYPE as "convenience.type"		       
+		from AIRBNB_ACC_CONVENIENCES A, AIRBNB_CONVENIENCES B
+		where A.ACC_NO = #{value}
+		and A.CONVENIENCE_NO = B.CONVENIENCE_NO
+	</select>
+	
+	<select id="getAccWishlistByUserNoAccNo" parameterType="map" resultType="AccWishlist">
+		select *
+		from (select ROWNUM as num,b.wishlist_no, c.image_name
+			from AIRBNB_WISHLIST_ACCOMMODATIONS a, AIRBNB_WISHLISTS b, AIRBNB_ACC_PHOTOS c
+			where a.wishlist_no = b.wishlist_no
+			and a.acc_no = c.acc_no
+			and b.user_no = ${userNo}
+			and b.wishlist_no = #{value}) photo
+			where photo.num = 1;
+	</select>
+	
+	<!-- List<AccPhoto> getAccPhotosByAccNo(int accNo); -->
+	<select id="getAccPhotosByAccNo" parameterType="int" resultType="AccPhoto">
+		select 	ROWNUM as num, 
+				A.IMAGE_NO as imageNo,
+				A.ACC_NO as accNo,
+				A.IMAGE_NAME as name,
+				A.IMAGE_DESCRIPTION as description,
+				A.IMAGE_COVER as cover
+ 		from
+ 		(
+ 			select 
+        	A.*
+   			FROM AIRBNB_ACC_PHOTOS A
+  			where acc_no = #{value}
+    		ORDER BY CASE WHEN A.IMAGE_COVER = 'Y' THEN 1 ELSE 2 END,
+        	A.image_no ASC
+		) A
+	</select>
+	
+	<!-- List<Type> getTypesByTypeNo(int typeNo); -->
+ 	<select id="getTypesByTypeNo" parameterType="int" resultType="Type">
+		select A.acc_no 			as accNo,
+        	   B.type_no 			as "type.no",
+        	   B.type_name 			as "type.name", 
+        	   B.type_description 	as "type.description", 
+        	   B.main_type 			as "type.maintype", 
+        	   B.image_name 		as "type.imageName"
+		from airbnb_accommodations A, airbnb_types B, airbnb_acc_types C
+		where A.acc_no = C.acc_no
+		and	  C.type_no = B.type_no
+		and   B.type_no = #{value}
+	</select> 
+	
+	<!-- List<Tag> getAllTag(); -->
+	<select id="getAllTag" resultType="Tag">
+		select 	 tag_id     as id,
+		         tag_name   as name,
+		         tag_icon   as icon
+		from airbnb_tags 
+		order by tag_id asc
+	</select>
+	
+	<!-- List<AccRoom> getAccRoomsByAccNo(int accNo); 
+	<select id="getAccRoomsByAccNo" parameterType="int" resultType="AccRoom">
+		select A.acc_no as accNo, 
+			   B.room_bathroom as "room.bathroom", 
+			   B.room_bed as "room.bed", 
+			   B.room_bedroom as "room.bedroom", 
+			   B.room_livingroom as "room.livingroom", 
+			   B.room_no as "room.no", 
+			   B.room_toilet as "room.toilet"
+		from airbnb_accommodations A, airbnb_acc_rooms B
+		where A.acc_no = B.acc_no
+		and A.acc_no = #{value}
+	</select> -->
+	
+	<select id="getRoomByAccNo" parameterType="int" resultType="kr.co.airbnb.vo.AccRoom">
+		select
+			ROOM_NO as no,
+			ACC_NO as accNo,
+			ROOM_BEDROOM as bedroom,
+			ROOM_BED as bed,
+			ROOM_BATHROOM as bathroom,
+			ROOM_TOILET as toilet,
+			ROOM_LIVINGROOM as livingroom
+		from AIRBNB_ACC_ROOMS
+		where acc_no = #{value}
+	</select>
+	
+	<!-- Accommodation getDisabledByAccNo(int accNo); -->
+	<select id="getDisabledByAccNo" parameterType="int" resultType="string">
+	
+		SELECT 
+              ( 
+                SELECT LISTAGG(TO_CHAR(A.YMD,'YYYY-MM-DD'),',') WITHIN GROUP (ORDER BY A.YMD) AS TEST
+                FROM
+                (
+                    SELECT A.CHECK_IN_DATE +(LEVEL - 1) AS YMD
+                    FROM DUAL
+                    CONNECT BY A.CHECK_IN_DATE +(LEVEL-1) <![CDATA[<=]]> A.CHECK_OUT_DATE
+                ) A
+               ) AS disabled
+		FROM AIRBNB_RESERVATIONS A
+        WHERE ACC_NO = #{value}
+	</select>
+	
+	<!-- SELECT DISTINCT to_char (YMD,'YYYY-MM-DD') YMD
+		FROM(
+		SELECT CHECK_IN_DATE+(LEVEL - 1) YMD
+		FROM AIRBNB_RESERVATIONS
+		where acc_no = #{value}
+		CONNECT BY CHECK_IN_DATE +(LEVEL-1) <![CDATA[<=]]> CHECK_OUT_DATE)
+		order by YMD asc -->
+	
+	
+	<resultMap type="Accommodation" id="AccDetailResultMap" extends="AccResultMap">
+		<!-- <association property="room" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getAccRoomsByAccNo"></association> -->
+		<collection property="conveniences" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getAccConveniencesByAccNo"></collection>
+   		<collection property="photos" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getAccPhotosByAccNo"></collection>
+   		<collection property="room" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getRoomByAccNo"></collection>
+      	<collection property="type" column="TYPE_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getTypesByTypeNo"></collection>
+      	<collection property="disabledDate" column="acc_no" select="kr.co.airbnb.mapper.AccommodationMapper.getDisabledByAccNo"/>
+	</resultMap>
+	
+	
+	
+	
+	
+	
+	<!-- Accommodation getAcc(int no); -->
+	<select id="getAcc" parameterType="int" resultMap="AccDetailResultMap">
+		select *
+		from AIRBNB_ACCOMMODATIONS
+		where acc_no = #{value}
+	</select>
+
+
+
+	<!-- List<Type> getAllTypesByAccNo(int accNo); -->
+	<select id="getAllTypesByAccNo" parameterType="int" resultType="Type">
+		select 
+			B.type_no as no,
+			B.type_name as name,
+			B.main_type mainType,
+			B.privacy_type as privacyType,
+			B.image_name as imageName,
+			B.type_description as description
+		from 
+			airbnb_accommodations A,
+			airbnb_types B,
+			airbnb_acc_types C
+		where A.acc_no = C.acc_no
+		and B.type_no = C.type_no
+		and A.acc_no = #{value}
+		order by B.type_no
+	</select>
+	
+	<!-- List<Accommodation> getPopularAccommodations(); -->
+	<select id="getPopularAccommodations" resultMap="AccResultMap">
+		select *
+		from (
+			select *
+			from airbnb_accommodations
+			order by acc_review_score desc, acc_review_count desc)
+		where rownum &lt;= 20
+	</select>
+	
+		<!-- List<Accommodation> getAllAccs(int userNo); 
+ 	     내 위시리스트에 담겨있는지 여부를 함께 반환하는 모든 숙소 정보 -->
+ 	<select id="getAllAccs" resultMap="AccDetailResultMap">
+ 		with my_accommodations
+		as (
+		select W.*, WA.acc_no
+		from airbnb_wishlists W, airbnb_wishlist_accommodations WA
+		where W.wishlist_no = WA.wishlist_no
+		and W.user_no = #{userNo})
+		select *
+		from (		
+				select A.*, 
+				(select 'Y'
+				from dual
+				where exists ( select 1
+				                          from my_accommodations M
+				                          where A.acc_no  = M.acc_no)) savedWishList
+				from airbnb_accommodations A
+				order by acc_review_count desc, acc_review_score desc
+				)
+		where rownum &lt;= 20
+ 	</select>
+	
+	<!-- List<Accommodation> getAccByCriteria(AccListCriteria accListCriteria); -->
+	<select id="getAccByCriteria" parameterType="kr.co.airbnb.criteria.AccListCriteria" resultMap="AccResultMap">
+		select X.*
+		<choose>
+			<when test="user != null">
+				, nvl((select 'Y'
+				   from dual 
+				   where exists (select 1
+							     from airbnb_wishlists W, airbnb_wishlist_accommodations WA
+							     where W.wishlist_no = WA.wishlist_no
+					             and W.user_no = #{user.no}
+					             and WA.acc_no = X.acc_no)), 'N') SAVED_WISHLIST
+			</when>
+			<otherwise>
+				, 'N' as WISHLIST_SAVED
+			</otherwise>
+		</choose>
+		from (
+			select A.*
+			from airbnb_accommodations A
+			<if test="id != null">
+				, airbnb_tags B, airbnb_acc_tags C
+			</if>
+			<where>
+				<if test="id != null">
+					A.acc_no = C.acc_no
+					and B.tag_id = C.tag_id
+					and B.tag_id = #{id}			
+				</if>
+				<if test="minPrice > 0  and maxPrice > 0">
+					and A.acc_price >= #{minPrice} and A.acc_price &lt;= #{maxPrice}
+				</if>
+				<if test="keyword != null">
+					and A.acc_address like '%'||#{keyword}||'%'
+				</if>
+				<!-- <if test="startDate != '' ">
+					endDate를 지정하지 않는 경우 1박 2일으로 자동 설정
+					<if test="endDate == ''">	
+						and acc_check_in = #{startDate}
+						and acc_check_out = to_date('#{startDate}', 'YYYY-MM-DD') + 1
+					</if>
+					<if test="endDate != ''">
+						and acc_check_in = #{startDate}
+						and acc_check_out = #{endDate}
+					</if>
+				</if> -->
+				<if test="startDate != null and endDate != null">
+					and A.acc_check_in &lt;= #{startDate}
+					and A.acc_check_out >= #{endDate}
+				</if>
+				<if test="adult != null || child != null || infant != null">
+					and A.acc_guest >= #{adult} + #{child} + #{infant}
+				</if>
+				<if test="pet != null">
+					and A.acc_pet = #{pet}
+				</if>
+				<if test="rent != null">
+					and A.acc_no in (select acc_no
+							       from airbnb_acc_types
+							       where type_no in
+							     		<foreach collection="rent" item="type" open="(" close=")" separator=",">
+							     			#{type}
+							     		</foreach>
+							     	)
+				</if>
+				<if test="house != null">
+					and A.acc_no in (select acc_no
+							       from airbnb_acc_types
+							       where type_no in
+							     		<foreach collection="house" item="type" open="(" close=")" separator=",">
+							     			#{type}
+							     		</foreach>
+							       )
+				</if>
+				
+				<if test="convenience != null">
+					and A.acc_no in (select acc_no
+								  from airbnb_acc_conveniences
+								  where convenience_no in
+								  		<foreach collection="convenience" item="convenience" open="(" close=")" separator=",">
+										   #{convenience}
+								  		</foreach>
+								  )
+				</if>
+				 
+				<if test="bedrooms != null">
+					<if test="bedrooms == 0">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms)
+					</if>
+					<if test="bedrooms == 8">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms
+									  where room_bedroom >= 8)
+					</if>
+					<if test="bedrooms != 0 and bedrooms != 8">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms
+									  where room_bedroom = #{bedrooms})
+					</if>
+				</if>
+				
+				<if test="beds != null">
+					<if test="beds == 0">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms)
+					</if>
+					<if test="beds == 8">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms
+									  where room_bed >= 8)
+					</if>
+					<if test="beds != 0 and beds != 8">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms
+									  where room_bed = #{beds})
+					</if>
+				</if>
+				<if test="bathrooms != null">
+					<if test="bathrooms == 0">						
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms)
+					</if>
+					<if test="bathrooms == 8">					
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms
+									  where room_bathroom >= 8)
+					</if>
+					<if test="bathrooms != 0 and bathrooms != 8">
+						and A.acc_no in (select acc_no
+									  from airbnb_acc_rooms
+									  where room_bathroom = #{bathrooms})
+					</if>
+				</if>
+			</where>
+		order by A.acc_review_count desc, A.acc_review_score desc) X
+		where rownum &lt;= 20
+	</select>
+	
+	
+	
+	<!-- List<Accommodation> getAllAccsByUser(User loginUser); -->
+	<select id="getAllAccsByUser" parameterType="User" resultMap="AccResultMap">
+		select *
+		from airbnb_accommodations A, airbnb_users B
+		where A.user_no = B.user_no
+		and A.user_no = #{no}
+		order by A.acc_no
+	</select>
+
+	<!-- List<AccConvenience2> getCon(int accNo); -->
+	<select id="getBoast" parameterType="int" resultType="Boast">
+		select 
+			 ACC_NO as accNo,
+			 CONVENIENCE_NO as conNo
+		from AIRBNB_ACC_CONVENIENCES
+		where acc_no = #{value}
+	</select>
+	
+	<!-- int getAccNoByUser(User loginUser); -->
+	<select id="getAccNoByUser" parameterType="User" resultType="int">
+		select Max(acc_no)
+		from airbnb_accommodations
+		where user_no = #{no}
+	</select>
+	
+	<!-- void updateAcc(Accommodation acc); -->
+	<update id="updateAcc" parameterType="Accommodation">
+		update airbnb_accommodations
+		set 
+			user_no = #{user.no},
+			acc_review_score = #{reviewScore},
+			acc_name = #{name},
+			acc_description = #{description},
+			acc_address = #{address},
+			acc_latitude = #{latitude},
+			acc_longitude = #{longitude},
+			acc_price = #{price},
+			acc_guest = #{guest},
+			acc_pet = #{pet},
+			acc_check_in = #{checkIn},
+			acc_check_out = #{checkOut},
+			acc_check_In_Type = #{checkInType},
+			acc_status = #{status},
+			acc_updated_Date = sysdate,
+			acc_view_Count = #{viewCount},
+			acc_min_day = #{minDay},
+			acc_max_day = #{maxDay},
+			acc_rent = #{rent},
+			acc_traffic_description = #{trafficDescription},
+			acc_refound_description = #{refoundDescription},
+			acc_cleaning_price = #{cleaningPrice},
+			image_cover = #{imageCover},			
+			avg_total = #{totalScore},
+			avg_cleanliness = #{cleanScore},
+			avg_accuracy = #{accuracyScore},
+			avg_communication = #{communicationScore},
+			avg_location = #{locationScore},
+			avg_checkin = #{checkinScore},
+			avg_value = #{valueScore},
+			avg_convenience = #{convenienceScore}
+		where acc_no = #{accNo}
+	</update>
+
+	<!-- void updateReview(Accommodation accommodation) -->
+	<update id="updateAvgScore" parameterType="kr.co.airbnb.vo.Accommodation">
+		update AIRBNB_ACCOMMODATIONS
+	    set
+	    	ACC_REVIEW_COUNT = ACC_REVIEW_COUNT + 1,
+	    	ACC_REVIEW_SCORE = #{reviewScore},
+	    	AVG_TOTAL = #{totalScore},
+	    	AVG_CLEANLINESS = #{cleanScore},
+			AVG_ACCURACY = #{accuracyScore},
+			AVG_COMMUNICATION = #{communicationScore},
+			AVG_LOCATION = #{locationScore},
+			AVG_CHECKIN = #{checkinScore},
+			AVG_VALUE = #{valueScore},
+			AVG_CONVENIENCE = #{convenienceScore}
+		where acc_no = #{accNo}
+	</update>
+	
+	<!-- void deleteReview(Review review); -->
+	<update id="deleteReview" parameterType="kr.co.airbnb.vo.Review">
+		update AIRBNB_ACCOMMODATIONS
+		set
+			ACC_REVIEW_COUNT = ACC_REVIEW_COUNT - 1,
+			ACC_UPDATED_DATE = sysdate
+		where acc_no in (select a.acc_no
+		                 from AIRBNB_ACCOMMODATIONS a,  AIRBNB_REVIEWS b
+		                 where b.acc_no = a.acc_no
+		                 and b.review_no = #{no})
+	</update>
+	
+	<!-- void insertAcc(Accommodation acc); -->	
+	<insert id="insertAcc" parameterType="Accommodation">
+		<selectKey keyProperty="accNo" resultType="int" order="BEFORE">
+			select Accommodations_seq.nextval
+			from dual
+		</selectKey>
+		insert into airbnb_accommodations
+		(acc_no, user_no, acc_status)
+		values
+		(#{accNo}, #{user.no}, #{status})
+	</insert>
+
+	<!-- void insertAccType(AccType accType); -->
+ 	<insert id="insertAccType" parameterType="AccType">
+		INSERT INTO airbnb_acc_types (acc_no, type_no)
+		SELECT #{accNo}
+		     , #{type.no}
+		  FROM dual
+		 WHERE NOT EXISTS (SELECT *
+		                     FROM airbnb_acc_types
+		                    WHERE type_no = #{type.no}
+		                    and acc_no = #{accNo})
+	</insert>
+	
+</mapper>

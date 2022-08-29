@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.airbnb.mapper.WishlistMapper">
+
+	<resultMap type="Wishlist" id="WishlistResultMap">
+		<id column="wishlist_no" property="no"/>
+		<result column="wishlist_name" property="name"/>
+		<result column="wishlist_created_datE" property="createdDate"/>
+		<result column="wishlist_updated_date" property="updatedDate"/>
+		<association column="user_no" property= "user" select="kr.co.airbnb.mapper.UserMapper.getUserByNo" />
+		<collection column="acc_no" property="accs" select="kr.co.airbnb.mapper.AccommodationMapper.getAcc"/>
+		<collection column="acc_no" property="acc" select="kr.co.airbnb.mapper.AccommodationMapper.getAcc"/>
+	</resultMap> 
+ 
+ 	<!-- List<Wishlist> getWishlistsByUserNo(int userNo); -->
+ 	<select id="getWishlistsByUserNo" parameterType="int" resultMap="WishlistResultMap">
+ 		select *
+ 		from airbnb_wishlists
+ 		where user_no = #{value}
+ 		order by wishlist_no desc
+ 	</select>
+ 	
+ 	<!-- List<Wishlist> getNextWishlists(int userNo, int startNum, int lastNum); -->
+ 	<select id="getNextWishlists" resultMap="WishlistResultMap">
+ 		select wishlist_no, wishlist_name, wishlist_created_date, wishlist_updated_date, user_no
+		from (select ROW_NUMBER() OVER (ORDER BY wishlist_no desc) R, W.*
+		      from airbnb_wishlists W
+		      where user_no = #{userNo})
+		where R between #{startNum} and #{lastNum}
+ 	</select>
+ 	
+ 	
+ 	<!-- int getAccNoByUserNo(int userNo); -->
+ 	<select id="getAccNoByUserNo" parameterType="map" resultType="AccWishlist">
+ 		select  a.wishlist_no as "Wishlist.no",
+ 				b.acc_no as accNo
+ 		from airbnb_wishlists a, AIRBNB_WISHLIST_ACCOMMODATIONS b
+ 		where a.user_no = #{userNo}
+ 		and b.acc_no = #{accNo}
+        and a.WISHLIST_NO = b.WISHLIST_NO
+ 	</select>
+ 	<!-- WishlistImage getImageByUserNo(int userNo); -->
+ 	<select id="getImageByUserNo" parameterType="map" resultType="WishlistImage">
+		select *
+		from (select ROWNUM as num,b.wishlist_no as wishlitNo, c.image_name as imageName
+		from AIRBNB_WISHLIST_ACCOMMODATIONS a, AIRBNB_WISHLISTS b, AIRBNB_ACC_PHOTOS c
+		where a.wishlist_no = b.wishlist_no
+		and a.acc_no = c.acc_no
+		and b.user_no = #{userNo}
+		and b.wishlist_no = #{wishlistNo}) photo
+		where photo.num = 1 	
+ 	</select>
+ 	
+ 	<!-- Wishlist getWishlistByNo(int wishlistNo); -->
+ 	<select id="getWishlistByNo" parameterType="int" resultMap="WishlistResultMap">
+ 		select *
+ 		from airbnb_wishlists
+ 		where wishlist_no = #{value}
+ 	</select>
+ 	
+ 	<resultMap type="Accommodation" id="AccResultMap">
+		<id column="ACC_NO" property="accNo"/>
+		<result column="ACC_REVIEW_COUNT" property="reviewCount"/>
+		<result column="ACC_REVIEW_SCORE" property="reviewScore"/>
+		<result column="ACC_NAME" property="name"/>
+		<result column="ACC_DESCRIPTION" property="description"/>
+		<result column="ACC_address" property="address"/>
+		<result column="ACC_LATITUDE" property="latitude"/>
+		<result column="ACC_LONGITUDE" property="longitude"/>
+		<result column="ACC_PRICE" property="price"/>
+		<result column="ACC_GUEST" property="guest"/>
+		<result column="ACC_PET" property="pet"/>
+		<result column="ACC_CHECK_IN" property="checkIn"/>
+		<result column="ACC_CHECK_OUT" property="checkOut"/>
+		<result column="ACC_CHECK_IN_TYPE" property="checkInType"/>
+		<result column="ACC_STATUS" property="status"/>
+		<result column="ACC_CREATED_DATE" property="createdDate"/>
+		<result column="ACC_UPDATED_DATE" property="updatedDate"/>
+		<result column="ACC_VIEW_COUNT" property="viewCount"/>
+		<result column="ACC_MIN_DAY" property="minDay"/>
+		<result column="ACC_MAX_DAY" property="maxDay"/>
+		<result column="ACC_RENT" property="rent"/>
+		<result column="ACC_TRAFFIC_DESCRIPTION" property="trafficDescription"/>
+		<result column="ACC_REFOUND_DESCRIPTION" property="refoundDescription"/>
+		<result column="ACC_CLEANING_PRICE" property="cleaningPrice"/>
+		<result column="IMAGE_COVER" property="imageCover"/>
+		<result column="AVG_CLEANLINESS" property="cleanScore"/>
+		<result column="AVG_ACCURACY" property="accuracyScore"/>
+		<result column="AVG_COMMUNICATION" property="communicationScore"/>
+		<result column="AVG_LOCATION" property="locationScore"/>
+		<result column="AVG_CHECKIN" property="checkinScore"/>
+		<result column="AVG_VALUE" property="valueScore"/>
+		<result column="AVG_CONVENIENCE" property="convenienceScore"/>
+		<result column="AVG_TOTAL" property="totalScore"/>
+		<!-- 08.23 추가 -->
+		<result column="savedWishlist" property="savedWishlist" /> 
+		<association property="disabledDate" column="acc_no" select="kr.co.airbnb.mapper.AccommodationMapper.getDisabledByAccNo"/>
+		<association property="user" column="USER_NO" select="kr.co.airbnb.mapper.UserMapper.getUserByNo"/>
+	</resultMap>
+	
+	<resultMap type="Accommodation" id="AccDetailResultMap" extends="AccResultMap">
+		<!-- <association property="room" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getAccRoomsByAccNo"></association> -->
+		<collection property="conveniences" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getAccConveniencesByAccNo"></collection>
+   		<collection property="photos" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getAccPhotosByAccNo"></collection>
+   		<collection property="room" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getRoomByAccNo"></collection>
+      	<collection property="type" column="TYPE_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getTypesByTypeNo"></collection>
+		<!--
+		<collection property="wishlist" column="ACC_NO" select="kr.co.airbnb.mapper.AccommodationMapper.getWishlistByAccNo"></collection>
+		<collection property="view" column="ACC_NO" select=""></collection>
+		<collection property="reservation" column="ACC_NO" select=""></collection>
+		<collection property="review" column="ACC_NO" select=""></collection>
+		<collection property="discount" column="ACC_NO" select=""></collection>
+		<collection property="tag" column="ACC_NO" select=""></collection> -->
+	</resultMap>
+ 	
+ 	<!-- List<Accommodation> getWishlistAccsByNo:(List<Integer> wishlistNo);  distinct? -->
+ 	<select id="getWishlistAccsByNo" parameterType="int" resultMap="AccDetailResultMap">
+ 		select *
+ 		from airbnb_accommodations
+ 		where acc_no in (select acc_no
+ 		                 from airbnb_wishlist_accommodations
+ 		                 where wishlist_no = #{value})
+ 		order by acc_no desc
+ 	</select>
+ 	
+ 	<!-- List<Accommodation> getAvailableWishlistAccsWithConditions(@Param("wishlistNo")int wishlistNo, @Param("checkInDate") Date checkIndate, @Param("checkOutDate") Date checkOutDate, @Param("guestCount") int guestCount); -->
+ 	<!-- 위시리스트에서 날짜, 인원 조건에 맞고 예약가능한 숙소들 -->
+ 	<!-- 확인!!!!!!!!!!!!!!! -->
+ 	<select id="getAvailableWishlistAccsWithConditions" resultMap="AccDetailResultMap">
+ 		WITH test_accommodations
+		 AS ( select *
+		 		from airbnb_accommodations
+		 		where acc_no in (select acc_no
+		 		                 from airbnb_wishlist_accommodations
+		 		                 where wishlist_no = #{wishlistNo}) )
+		select *
+		 		from airbnb_accommodations
+		 		where acc_no in (select acc_no
+		 		                 from airbnb_wishlist_accommodations
+		 		                 where wishlist_no = #{wishlistNo})
+		minus
+		
+		SELECT DISTINCT T.*
+		FROM test_accommodations T, airbnb_reservations R
+		WHERE T.acc_no = R.acc_no(+)
+		<choose>
+			<when test="checkInDate != null and checkOutDate != null">
+				AND (T.acc_status != '운영중' 
+				     OR T.acc_guest &lt; #{guestCount}
+				     OR (R.check_out_date &gt; #{checkInDate}  and #{checkInDate} &gt;= R.check_in_date)                              
+				     OR (R.check_out_date &gt; #{checkOutDate}  and  R.check_in_date &lt; #{checkOutDate})
+				     OR (R.check_in_date &gt;= #{checkInDate}  and R.check_out_date &lt;= #{checkOutDate}))
+			</when>
+			<otherwise>
+				AND (T.acc_status != '운영중'  OR T.acc_guest &lt; #{guestCount})
+			</otherwise>
+		</choose>
+ 	
+ 		<!-- WITH test_accommodations
+		 AS ( select *
+		 		from airbnb_accommodations
+		 		where acc_no in (select acc_no
+		 		                 from airbnb_wishlist_accommodations
+		 		                 where wishlist_no = #{wishlistNo}))
+		SELECT distinct T.*
+		FROM test_accommodations T, airbnb_reservations R
+		WHERE T.acc_no = R.acc_no(+)
+		and T.acc_guest &gt;= #{guestCount}						게스트는 없어도 기본값 1
+		and T.acc_status = '운영중'
+		<if test="checkInDate != null and checkOutDate != null">   
+		 AND (R.check_out_date &lt;= #{checkInDate} 
+		 OR R.check_in_date &gt;= #{checkOutDate} 
+		 OR R.check_in_date is null)
+		</if>        --> 
+ 	</select>
+ 	
+ 	
+ 	<!-- 위시리스트에서 날짜, 인원 조건에 예약불가한 숙소리스트 -->
+ 	<!-- List<Accommodation> getUnableWishlistAccsWithConditions -->
+ 	<select id="getUnavailableWishlistAccsWithConditions" resultMap="AccDetailResultMap">
+ 		WITH test_accommodations
+		 AS ( select *
+		 		from airbnb_accommodations
+		 		where acc_no in (select acc_no
+		 		                 from airbnb_wishlist_accommodations
+		 		                 where wishlist_no = #{wishlistNo}) )
+		SELECT DISTINCT T.*
+		FROM test_accommodations T, airbnb_reservations R
+		WHERE T.acc_no = R.acc_no(+)
+		<choose>
+			<when test="checkInDate != null and checkOutDate != null">
+				AND (T.acc_status != '운영중' 
+				     OR T.acc_guest &lt; #{guestCount}
+				     OR (R.check_out_date &gt; #{checkInDate}  and #{checkInDate} &gt;= R.check_in_date)                              
+				     OR (R.check_out_date &gt; #{checkOutDate}  and  R.check_in_date &lt; #{checkOutDate})
+				     OR (R.check_in_date &gt;= #{checkInDate}  and R.check_out_date &lt;= #{checkOutDate}))
+			</when>
+			<otherwise>
+				AND (T.acc_status != '운영중'  OR T.acc_guest &lt; #{guestCount})
+			</otherwise>
+		</choose>
+	
+ 	
+ 		<!-- WITH test_accommodations
+		 AS ( select *
+		 		from airbnb_accommodations
+		 		where acc_no in (select acc_no
+		 		                 from airbnb_wishlist_accommodations
+		 		                 where wishlist_no = #{wishlistNo}) )
+		 select *
+		 		from airbnb_accommodations
+		 		where acc_no in (select acc_no
+		 		                 from airbnb_wishlist_accommodations
+		 		                 where wishlist_no = #{wishlistNo})                         
+		MINUS
+		
+		SELECT  distinct T.*
+		FROM test_accommodations T, airbnb_reservations R
+		WHERE T.acc_no = R.acc_no(+)
+		and T.acc_guest &gt;= #{guestCount}	
+		and T.acc_status = '운영중'
+		<if test="checkInDate != null and checkOutDate != null">   
+		 AND (R.check_out_date &lt;= #{checkInDate} 
+		 OR R.check_in_date &gt;= #{checkOutDate} 
+		 OR R.check_in_date is null)
+		</if>   -->
+ 	</select>
+ 	
+ 	<!-- void createWishlist(Wishlist wishlist); -->
+ 	<insert id="createWishlist" parameterType="Wishlist">
+ 		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			select wishlists_seq.nextval
+			from dual
+		</selectKey>
+ 		insert into airbnb_wishlists (wishlist_no, wishlist_name, user_no)
+ 		values (#{no}, #{name},  #{user.no})
+ 	</insert>
+ 	
+ 	<!-- void saveWishlistAcc(int wishlistNo, int accNo); -->
+ 	<insert id="saveWishlistAcc">
+ 		insert into airbnb_wishlist_accommodations
+ 		values (#{wishlistNo}, #{accNo})
+ 	</insert>
+ 	
+ 	<!-- void changeWishlist(int wishlistNo, int accNo); 숙소를 다른 위시리스트 폴더로 변경할 때 -->
+ 	<update id="changeWishlist">
+ 		update airbnb_wishlist_accommodations
+ 	     set 
+ 	      wishlist_no = #{wishlistNo}
+ 	    where acc_no = ${accNo}
+ 	</update>
+ 	
+ 	<!-- void updateWishlist(Wishlist wishlist); -->
+ 	<update id="updateWishlist" parameterType="Wishlist">
+ 		update airbnb_wishlists
+ 		 set
+ 		  wishlist_name = #{name}
+ 		where wishlist_no = #{no}
+ 	</update>
+ 	
+ 	<!-- void deleteWishlist(int wishlistNo); -->
+ 	<delete id="deleteWishlist" parameterType="int">
+ 		delete 
+ 		from airbnb_wishlists
+ 		where wishlist_no = #{value}
+ 	</delete>
+ 	
+ 	<!-- void deleteWishlistAcc(int accNo, int wishlistNo); 수정 및 추가-->
+ 	<delete id="deleteWishlistAcc">
+ 		delete 
+		from airbnb_wishlist_accommodations
+		where wishlist_no = #{wishlistNo} 
+		and acc_no = #{accNo} 
+ 	</delete>
+ 	
+ 	<!-- void deleteAllAccsInWishlist(@Param("wishlistNo") int wishlistNo); -->
+ 	<delete id="deleteAllAccsInWishlist">
+ 		delete 
+		from airbnb_wishlist_accommodations
+		where wishlist_no = #{wishlistNo} 
+ 	</delete>
+ 	
+ 	<!-- 
+	 	홈화면에서 사용자번호, 숙소 번호만으로 위시리스트 숙소 삭제할 경우
+		void deleteWishlistAccByUserNoAndAccNo(@Param("userNo") int userNo, @Param("accNo") int accNo);
+ 	 -->
+ 	 <delete id="deleteWishlistAccByUserNoAndAccNo">
+ 	 	delete
+		from airbnb_wishlist_accommodations
+		where wishlist_no = (select A.wishlist_no
+		                                    from airbnb_wishlists W, airbnb_wishlist_accommodations A
+		                                    where W.wishlist_no = A.wishlist_no
+		                                    and W.user_no = #{userNo}
+		                                    and A.acc_no = #{accNo})
+		and acc_no = (select A.acc_no
+		                                    from airbnb_wishlists W, airbnb_wishlist_accommodations A
+		                                    where W.wishlist_no = A.wishlist_no
+		                                    and W.user_no = #{userNo}
+		                                    and A.acc_no = #{accNo})
+ 	 </delete>
+ 	 
+</mapper>

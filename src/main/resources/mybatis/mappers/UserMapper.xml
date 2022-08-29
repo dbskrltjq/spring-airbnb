@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="kr.co.airbnb.mapper.UserMapper">
+
+	<resultMap type="User" id="userResultMap">
+		<id column="USER_NO" property="no"/>
+		<result column="USER_NAME" property="name"/>
+		<result column="USER_EMAIL" property="email"/>
+		<result column="USER_PASSWORD" property="password"/>
+		<result column="USER_PHONE" property="phone"/>
+		<result column="USER_PROFILE_IMAGE" property="profileImage"/>
+		<result column="USER_DESCRIPTION" property="description"/>
+		<result column="USER_BIRTH_DATE" property="birthDate"/>
+		<result column="USER_ADDRESS" property="address"/>
+		<result column="USER_DISABLED" property="disabled"/>
+		<result column="USER_HOST" property="isHost"/>
+		<result column="USER_CREATED_DATE" property="createdDate"/>
+		<result column="USER_UPDATED_DATE" property="updatedDate"/>
+		<result column="USER_GENDER" property="gender"/>
+		<result column="USER_LOGINTYPE" property="loginType"/>
+		<result column="USER_REVIEW_COUNT" property="reviewCount"/>
+		<result column="USER_REVIEW_SCORE" property="reviewScore"/>
+		<result column="AVG_TOTAL" property="totalScore"/>
+		<result column="AVG_CLEANLINESS" property="cleanScore"/>
+		<result column="AVG_COMMUNICATION" property="communicationScore"/>
+		<result column="AVG_OBSERVANCE" property="observanceScore"/>
+	</resultMap>
+
+	<!-- User getUserByEmail(String email); -->
+	<select id="getUserByEmail" parameterType="string" resultMap="userResultMap">
+		select *
+		from airbnb_users
+		where user_email = #{value}
+	</select>
+	
+	<!-- User getUserByNo(int no); -->
+	<select id="getUserByNo" parameterType="int" resultMap="userResultMap">
+		select *
+		from airbnb_users
+		where user_no = #{value}
+	</select>
+	
+	<insert id="insertUser" parameterType="User">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			select users_seq.nextval
+			from dual
+		</selectKey>
+		insert into airbnb_users(user_no, user_name, user_email
+		<if test="password != null">
+			, user_password
+		</if>
+		<if test="birthDate != null">
+			, user_birth_date
+		</if>
+		<if test="profileImage != null">
+			, user_profile_image
+		</if>
+		<if test="loginType != null">
+			, user_logintype
+		</if>
+		<if test="gender != null">
+			, user_gender
+		</if>
+		)
+		values(#{no}, #{name}, #{email}
+		<if test="password != null">
+			, #{password}
+		</if>
+		<if test="birthDate != null">
+			, #{birthDate}
+		</if>
+		<if test="profileImage != null">
+			, #{profileImage}
+		</if>
+		<if test="loginType  != null">
+			, #{loginType }
+		</if>
+		<if test="gender != null">
+			, #{gender}
+		</if>
+		)
+	</insert>
+	
+	<update id="updateUser" parameterType="User">
+		update airbnb_users
+		 set
+		 	user_name = #{name},
+		 	user_email = #{email},
+		 	user_password = #{password},
+		 	user_phone = #{phone},
+		 	user_profile_image = #{profileImage},
+		 	user_description = #{description},
+		 	user_birth_date = #{birthDate},
+		 	user_address = #{address},
+		 	user_disabled = #{disabled},
+		 	user_host = #{isHost},
+		 	user_updated_date = sysdate,
+		 	user_gender = #{gender}
+		where user_no = #{no}
+	</update>
+
+	<update id="updateAvgScore" parameterType="kr.co.airbnb.vo.User">
+		update airbnb_users
+		 set
+	 		USER_REVIEW_COUNT = USER_REVIEW_COUNT + 1,
+	 		USER_REVIEW_SCORE = #{reviewScore},
+		 	AVG_TOTAL = #{totalScore},
+		 	AVG_CLEANLINESS = #{cleanScore},
+		 	AVG_COMMUNICATION = #{communicationScore},
+		 	AVG_OBSERVANCE = #{observanceScore}
+		where user_no = #{no}
+	</update>
+	
+	<!-- void disableUser(int userNo); -->
+	<delete id="disableUser" parameterType="int">
+		update airbnb_users
+		 set user_disabled = 'Y'
+		where user_no = #{value}
+	</delete>
+	
+</mapper>
