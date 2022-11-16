@@ -36,6 +36,7 @@ airbnb project for spring boot
 
 ## 담당 파트 요약
 
+
 ![로그인](https://user-images.githubusercontent.com/107186827/202122665-b3f8abbc-d4a8-48cb-a327-2f15a6071a59.png)
 
 ![회원가입](https://user-images.githubusercontent.com/107186827/202122778-b847d226-e424-4ed4-8e8b-2949c2f4c8df.png)
