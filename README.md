@@ -46,9 +46,12 @@ airbnb project for spring boot
 - 페이스북, 구글, 카카오 소셜 로그인 기능 제공
 - 정규식을 활용한 이메일 입력값 유효성 검사
 
----
+
 
 **사용자 계정**
+
+---
+
 ![회원가입](https://user-images.githubusercontent.com/107186827/202121686-5fd21143-acff-4eac-a07e-fc5dc5fd0e37.png)
 
 - 각 회원가입 입력창에서 적절한 입력값 유효성 검사
