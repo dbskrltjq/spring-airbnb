@@ -24,12 +24,14 @@ airbnb project for spring boot
 
 ## 프로젝트 기획서
 
-![1.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/be17fa28-9016-4115-a742-9baa0373ac72/1.png)
+![프로젝트 기획서](https://user-images.githubusercontent.com/107186827/202121096-c6f385bd-165b-4e2b-985b-ce6d20bad834.png)
+
 
 ## 데이터베이스 다이어그램(ERD)
 
----
+---![ERD](https://user-images.githubusercontent.com/107186827/202121143-5003c288-d22a-4968-b47c-434b3ea9ae1d.png)
 
-![1.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0109d71f-cf53-472c-99df-27008b4823b8/1.png)
+
+
 
 ## 담당 파트 요약
