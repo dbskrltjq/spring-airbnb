@@ -35,3 +35,22 @@ airbnb project for spring boot
 
 
 ## 담당 파트 요약
+**로그인 & 회원가입**
+
+---
+
+![로그인](https://user-images.githubusercontent.com/107186827/202121586-2ee734d7-c175-4a89-b1ad-a7996d05214e.png)
+
+
+- 입력한 이메일이 db에 존재하면 로그인, 존재하지 않으면 회원가입 모달창 출력
+- 페이스북, 구글, 카카오 소셜 로그인 기능 제공
+- 정규식을 활용한 이메일 입력값 유효성 검사
+
+---
+
+**사용자 계정**
+![회원가입](https://user-images.githubusercontent.com/107186827/202121686-5fd21143-acff-4eac-a07e-fc5dc5fd0e37.png)
+
+- 각 회원가입 입력창에서 적절한 입력값 유효성 검사
+- MultipartFile 객체를 이용한 파일 업로드 처리
+- Ajax 사용하여 페이지 변경 없이 업로드힌 이미지 파일 반영
