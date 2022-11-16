@@ -35,25 +35,24 @@ airbnb project for spring boot
 
 
 ## 담당 파트 요약
-**로그인 & 회원가입**
 
----
+![로그인](https://user-images.githubusercontent.com/107186827/202122665-b3f8abbc-d4a8-48cb-a327-2f15a6071a59.png)
 
-![로그인](https://user-images.githubusercontent.com/107186827/202121586-2ee734d7-c175-4a89-b1ad-a7996d05214e.png)
+![회원가입](https://user-images.githubusercontent.com/107186827/202122778-b847d226-e424-4ed4-8e8b-2949c2f4c8df.png)
 
+![사용자계정](https://user-images.githubusercontent.com/107186827/202122712-31606b60-f5a0-48a7-944b-94566aac981c.png)
 
-- 입력한 이메일이 db에 존재하면 로그인, 존재하지 않으면 회원가입 모달창 출력
-- 페이스북, 구글, 카카오 소셜 로그인 기능 제공
-- 정규식을 활용한 이메일 입력값 유효성 검사
+![사용자개인정보](https://user-images.githubusercontent.com/107186827/202122694-b1b064aa-06c3-4f55-a662-724b8d004ca2.png)
 
+![사용자프로필](https://user-images.githubusercontent.com/107186827/202122744-a3a03ed6-9d67-4e50-bb2d-794acea9ad44.png)
 
+![비활성화](https://user-images.githubusercontent.com/107186827/202122913-a1154249-c7bc-4287-a502-1b66066a3e0e.png)
 
-**사용자 계정**
+![위시리스트1](https://user-images.githubusercontent.com/107186827/202122928-85cf7ae6-2ffb-4d8d-a9e4-2c9b0e812f44.png)
 
----
+![위시리스트2](https://user-images.githubusercontent.com/107186827/202122951-c5c25ac1-ce94-40e0-98b7-3b2e9f02baae.png)
 
-![회원가입](https://user-images.githubusercontent.com/107186827/202121686-5fd21143-acff-4eac-a07e-fc5dc5fd0e37.png)
+![위시리스트3](https://user-images.githubusercontent.com/107186827/202122973-0d5c933c-2171-404a-b5f8-042cf0a362fb.png)
 
-- 각 회원가입 입력창에서 적절한 입력값 유효성 검사
-- MultipartFile 객체를 이용한 파일 업로드 처리
-- Ajax 사용하여 페이지 변경 없이 업로드힌 이미지 파일 반영
+![위시리스트4](https://user-images.githubusercontent.com/107186827/202122990-7e47cdf5-2a2b-4de5-a343-9ffb354e5462.png)
+
